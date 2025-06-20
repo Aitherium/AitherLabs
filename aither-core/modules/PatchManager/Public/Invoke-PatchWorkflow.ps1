@@ -170,50 +170,7 @@ function Invoke-PatchWorkflow {
                 }
             }
 
-            # Step 3: Create tracking issue with enhanced context (by default, unless explicitly disabled)
-            $issueResult = $null
-            if ($CreateIssue) {
-                Write-PatchLog "Creating tracking issue with intelligent analysis (step 1 of workflow)..." -Level "INFO"
-
-                if (-not $DryRun) {
-                    $issueParams = @{
-                        Description = $PatchDescription
-                        Priority = $Priority
-                    }
-                    
-                    # Include test data if available for intelligent analysis
-                    if ($testOutput.Count -gt 0 -or $testErrors.Count -gt 0) {
-                        $issueParams.TestOutput = $testOutput
-                        $issueParams.ErrorDetails = $testErrors
-                        $issueParams.TestType = "PatchWorkflow"
-                        $issueParams.TestContext = $testContext
-                    }
-
-                    $issueResult = New-PatchIssue @issueParams
-                    if ($issueResult.Success) {
-                        Write-PatchLog "Issue created: $($issueResult.IssueUrl)" -Level "SUCCESS"
-                    } else {
-                        Write-PatchLog "Issue creation failed: $($issueResult.Message)" -Level "WARN"
-                    }
-                } else {
-                    Write-PatchLog "DRY RUN: Would create GitHub issue" -Level "INFO"
-                }
-            } else {
-                Write-PatchLog "Skipping issue creation (disabled by -CreateIssue:`$false)" -Level "INFO"
-            }
-
-            # Step 4: Apply patch operation
-            if ($PatchOperation) {
-                Write-PatchLog "Applying patch operation..." -Level "INFO"
-
-                if (-not $DryRun) {
-                    & $PatchOperation
-                } else {
-                    Write-PatchLog "DRY RUN: Would execute patch operation" -Level "INFO"
-                }
-            }
-
-            # Step 5: Run test commands with enhanced output capture
+            # Step 3: Run test commands with enhanced output capture FIRST (before issue creation)
             if ($TestCommands.Count -gt 0) {
                 Write-PatchLog "Running $($TestCommands.Count) test command(s) with output capture..." -Level "INFO"
 
@@ -275,7 +232,55 @@ function Invoke-PatchWorkflow {
                 
                 # Log test summary
                 Write-PatchLog "Test execution complete. Output lines: $($testOutput.Count), Error lines: $($testErrors.Count)" -Level "INFO"
-            }            # Step 6: Sanitize files and commit patch changes
+            }
+
+            # Step 4: Create tracking issue with enhanced context (NOW with test data available)
+            $issueResult = $null
+            if ($CreateIssue) {
+                Write-PatchLog "Creating tracking issue with intelligent analysis (with test data from previous step)..." -Level "INFO"
+
+                if (-not $DryRun) {
+                    $issueParams = @{
+                        Description = $PatchDescription
+                        Priority = $Priority
+                    }
+                    
+                    # Include test data if available for intelligent analysis
+                    if ($testOutput.Count -gt 0 -or $testErrors.Count -gt 0) {
+                        $issueParams.TestOutput = $testOutput
+                        $issueParams.ErrorDetails = $testErrors
+                        $issueParams.TestType = "PatchWorkflow"
+                        $issueParams.TestContext = $testContext
+                        Write-PatchLog "Including test analysis data: $($testOutput.Count) output lines, $($testErrors.Count) error lines" -Level "INFO"
+                    } else {
+                        Write-PatchLog "No test data captured for analysis" -Level "INFO"
+                    }
+
+                    $issueResult = New-PatchIssue @issueParams
+                    if ($issueResult.Success) {
+                        Write-PatchLog "Issue created: $($issueResult.IssueUrl)" -Level "SUCCESS"
+                    } else {
+                        Write-PatchLog "Issue creation failed: $($issueResult.Message)" -Level "WARN"
+                    }
+                } else {
+                    Write-PatchLog "DRY RUN: Would create GitHub issue with test analysis" -Level "INFO"
+                }
+            } else {
+                Write-PatchLog "Skipping issue creation (disabled by -CreateIssue:`$false)" -Level "INFO"
+            }
+
+            # Step 5: Apply patch operation
+            if ($PatchOperation) {
+                Write-PatchLog "Applying patch operation..." -Level "INFO"
+
+                if (-not $DryRun) {
+                    & $PatchOperation
+                } else {
+                    Write-PatchLog "DRY RUN: Would execute patch operation" -Level "INFO"
+                }
+            }
+
+            # Step 6: Sanitize files and commit patch changes
             if (-not $DryRun) {
                 $gitStatus = git status --porcelain 2>&1
                 if ($gitStatus -and ($gitStatus | Where-Object { $_ -match '\S' })) {
