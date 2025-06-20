@@ -61,15 +61,15 @@ function Get-BackupStatistics {
             }
         } else {
             # Calculate statistics
-            $TotalSize = (BackupFiles | Measure-Object -Property Length -Sum).Sum
+            $TotalSize = ($BackupFiles | Measure-Object -Property Length -Sum).Sum
             $AverageSize = [Math]::Round($TotalSize / $BackupFiles.Count, 2)
             
             # Find oldest and newest files
-            $OldestFile = BackupFiles | Sort-ObjectLastWriteTime | Select-Object -First 1
-            $NewestFile = BackupFiles | Sort-ObjectLastWriteTime -Descending | Select-Object -First 1
+            $OldestFile = $BackupFiles | Sort-ObjectLastWriteTime | Select-Object -First 1
+            $NewestFile = $BackupFiles | Sort-ObjectLastWriteTime -Descending | Select-Object -First 1
             
             # Group by file extension
-            $FileTypes = BackupFiles | Group-ObjectExtension | ForEach-Object{
+            $FileTypes = $BackupFiles | Group-ObjectExtension | ForEach-Object{
                 $percentage = [Math]::Round(($_.Count / $BackupFiles.Count) * 100, 1)
                 @{
                     Extension = if ($_.Name) { $_.Name } else { "(no extension)" }
