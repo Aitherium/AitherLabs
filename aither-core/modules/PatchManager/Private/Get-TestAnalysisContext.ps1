@@ -102,7 +102,7 @@ function Get-TestAnalysisContext {
                     $filePath = $match.Groups[1].Value
                     
                     # Clean up the path
-                    $filePath = $filePath.Trim('"', "'", ' ', ':', ';', ',')
+                    $filePath = $filePath.Trim(@('"', "'", ' ', ':', ';', ','))
                     
                     # Skip if it's just an extension or too short
                     if ($filePath.Length -lt 4 -or $filePath -match '^\.[a-z]+$') {
@@ -141,7 +141,7 @@ function Get-TestAnalysisContext {
                     $moduleName = $match.Groups[1].Value
                     
                     # Clean up module name
-                    $moduleName = $moduleName.Trim('"', "'", ' ', './', '\', '/')
+                    $moduleName = $moduleName.Trim(@('"', "'", ' ', '.', '/', '\'))
                     
                     # Skip common false positives
                     if ($moduleName -in @('Force', 'ErrorAction', 'Verbose', 'Version', 'Global', 'Local') -or 
