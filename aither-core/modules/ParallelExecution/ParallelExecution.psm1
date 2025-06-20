@@ -23,12 +23,22 @@ if (Get-Module -Name 'Logging' -ErrorAction SilentlyContinue) {
     $loggingImported = $true
     Write-Verbose "Logging module already available"
 } else {
-    $loggingPaths = @(
-        'Logging',  # Try module name first (if in PSModulePath)
-        (Join-Path (Split-Path $PSScriptRoot -Parent) "Logging"),  # Relative to modules directory
-        (Join-Path $env:PWSH_MODULES_PATH "Logging"),  # Environment path
-        (Join-Path $env:PROJECT_ROOT "core-runner/modules/Logging")  # Full project path
-    )
+    $loggingPaths = @()
+    
+    # Add paths that don't require environment variables
+    $loggingPaths += 'Logging'  # Try module name first (if in PSModulePath)
+    $loggingPaths += (Join-Path (Split-Path $PSScriptRoot -Parent) "Logging")  # Relative to modules directory
+    
+    # Add paths that require environment variables (with null checks)
+    if ($env:PWSH_MODULES_PATH) { 
+        $loggingPaths += (Join-Path $env:PWSH_MODULES_PATH "Logging")
+    }
+    if ($env:PROJECT_ROOT) { 
+        $loggingPaths += (Join-Path $env:PROJECT_ROOT "aither-core/modules/Logging")
+    }
+    
+    # Add fallback path
+    $loggingPaths += '/workspaces/AitherLabs/aither-core/modules/Logging'
 
     foreach ($loggingPath in $loggingPaths) {
         if ($loggingImported) { break }
@@ -299,68 +309,143 @@ function Wait-ParallelJobs {
 function Invoke-ParallelPesterTests {
     <#
     .SYNOPSIS
-    Runs Pester tests in parallel for improved performance
+    Executes Pester tests in parallel across multiple test files
 
     .DESCRIPTION
-    Executes Pester tests across multiple test files in parallel, aggregating results
+    Provides parallel execution of Pester tests using PowerShell 7.0+ parallel capabilities
 
-    .PARAMETER TestPaths
-    Array of test file paths or directories to test
+    .PARAMETER TestFiles
+    Array of test file paths to execute in parallel
 
     .PARAMETER ThrottleLimit
-    Maximum number of parallel test jobs
+    Maximum number of parallel test executions (default: processor count)
 
-    .PARAMETER OutputFormat
-    Pester output format (Detailed, Normal, Minimal)
+    .PARAMETER PesterConfiguration
+    Custom Pester configuration object to use for tests
+
+    .PARAMETER TimeoutSeconds
+    Timeout for individual test file execution in seconds (default: 300)
 
     .EXAMPLE
-    $results = Invoke-ParallelPesterTests -TestPaths @("./tests/Module1.Tests.ps1", "./tests/Module2.Tests.ps1")
+    $testFiles = Get-ChildItem "tests" -Filter "*.Tests.ps1" -Recurse
+    $results = Invoke-ParallelPesterTests -TestFiles $testFiles.FullName
+
+    .NOTES
+    Uses PowerShell 7.0+ native parallel processing with Pester
     #>
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
-        [string[]]$TestPaths,
-
-        [Parameter(Mandatory = $false)]
+        [string[]]$TestFiles,
+        
+        [Parameter()]
         [int]$ThrottleLimit = [Environment]::ProcessorCount,
-
-        [Parameter(Mandatory = $false)]
-        [ValidateSet('Detailed', 'Normal', 'Minimal')]
-        [string]$OutputFormat = 'Normal'
+        
+        [Parameter()]
+        [object]$PesterConfiguration = $null,
+        
+        [Parameter()]
+        [int]$TimeoutSeconds = 300
     )
 
-    try {
-        Write-CustomLog "Starting parallel Pester tests for $($TestPaths.Count) paths" -Level "INFO"
-
-        $jobs = @()
-        foreach ($testPath in $TestPaths) {
-            $jobName = "PesterTest_$(Split-Path $testPath -Leaf)"
-            $job = Start-ParallelJob -Name $jobName -ScriptBlock {
-                param($path, $output)
-                Import-Module Pester -Force
-                Invoke-Pester -Path $path -Output $output -PassThru
-            } -ArgumentList @($testPath, $OutputFormat)
-
-            $jobs += $job
-
-            # Throttle job creation
-            if ($jobs.Count -ge $ThrottleLimit) {
-                $completedJobs = $jobs | Where-Object { $_.State -ne 'Running' }
-                if ($completedJobs.Count -eq 0) {
-                    # Wait for at least one job to complete
-                    Wait-Job -Job $jobs[0] | Out-Null
-                }
+    begin {
+        Write-CustomLog "Starting parallel Pester test execution" -Level "INFO"
+        Write-CustomLog "Processing $($TestFiles.Count) test files with throttle limit $ThrottleLimit" -Level "INFO"
+        
+        # Validate test files exist
+        $validTestFiles = @()
+        foreach ($testFile in $TestFiles) {
+            if (Test-Path $testFile) {
+                $validTestFiles += $testFile
+            } else {
+                Write-CustomLog "Test file not found: $testFile" -Level "WARN"
             }
         }
-
-        Write-CustomLog "All test jobs started, waiting for completion..." -Level "INFO"
-        $results = Wait-ParallelJobs -Jobs $jobs -ShowProgress
-
-        return $results
+        
+        if ($validTestFiles.Count -eq 0) {
+            throw "No valid test files found"
+        }
+        
+        Write-CustomLog "Found $($validTestFiles.Count) valid test files" -Level "INFO"
     }
-    catch {
-        Write-CustomLog "Parallel Pester execution failed: $($_.Exception.Message)" -Level "ERROR"
-        throw
+
+    process {
+        try {
+            # Execute tests in parallel
+            $results = $validTestFiles | ForEach-Object -Parallel {
+                $testFile = $_
+                $pesterConfig = $using:PesterConfiguration
+                
+                try {
+                    # Import Pester in each parallel runspace
+                    Import-Module Pester -Force -ErrorAction Stop
+                    
+                    # Create basic Pester configuration if none provided
+                    if ($null -eq $pesterConfig) {
+                        $pesterConfig = New-PesterConfiguration
+                        $pesterConfig.Run.Path = $testFile
+                        $pesterConfig.Output.Verbosity = 'Minimal'
+                        $pesterConfig.TestResult.Enabled = $true
+                    }
+                    
+                    # Execute the test
+                    $testResult = Invoke-Pester -Configuration $pesterConfig
+                    
+                    return @{
+                        TestFile = $testFile
+                        Result = $testResult
+                        Success = ($testResult.Failed.Count -eq 0)
+                        Duration = $testResult.Duration
+                        PassedCount = $testResult.Passed.Count
+                        FailedCount = $testResult.Failed.Count
+                        SkippedCount = $testResult.Skipped.Count
+                        Timestamp = Get-Date
+                    }
+                }
+                catch {
+                    return @{
+                        TestFile = $testFile
+                        Result = $null
+                        Success = $false
+                        Error = $_.Exception.Message
+                        Duration = [TimeSpan]::Zero
+                        PassedCount = 0
+                        FailedCount = 1
+                        SkippedCount = 0
+                        Timestamp = Get-Date
+                    }
+                }
+            } -ThrottleLimit $ThrottleLimit -TimeoutSeconds $TimeoutSeconds
+            
+            # Calculate summary statistics
+            $totalPassed = ($results | Measure-Object -Property PassedCount -Sum).Sum
+            $totalFailed = ($results | Measure-Object -Property FailedCount -Sum).Sum
+            $totalSkipped = ($results | Measure-Object -Property SkippedCount -Sum).Sum
+            $totalDuration = [TimeSpan]::Zero
+            
+            foreach ($result in $results) {
+                $totalDuration = $totalDuration.Add($result.Duration)
+            }
+            
+            $summary = @{
+                TestFiles = $validTestFiles
+                Results = $results
+                TotalPassed = $totalPassed
+                TotalFailed = $totalFailed
+                TotalSkipped = $totalSkipped
+                TotalDuration = $totalDuration
+                Success = ($totalFailed -eq 0)
+                ExecutionTime = Get-Date
+            }
+            
+            Write-CustomLog "Parallel Pester execution completed: $totalPassed passed, $totalFailed failed, $totalSkipped skipped" -Level "INFO"
+            
+            return $summary
+        }
+        catch {
+            Write-CustomLog "Error in parallel Pester execution: $($_.Exception.Message)" -Level "ERROR"
+            throw
+        }
     }
 }
 

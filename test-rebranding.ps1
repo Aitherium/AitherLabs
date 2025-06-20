@@ -48,7 +48,7 @@ $moduleResults = @{}
 
 foreach ($module in $aitheriumModules) {
     try {
-        $modulePath = "./core-runner/modules/$module"
+        $modulePath = "./aither-core/modules/$module"
         Import-Module $modulePath -Force
         $moduleInfo = Get-Module $module
         Write-Host "✅ $module v$($moduleInfo.Version) loaded" -ForegroundColor Green
@@ -61,7 +61,7 @@ foreach ($module in $aitheriumModules) {
 
 # Test 4: Module Manifest Validation
 Write-Host "`n🔍 Test 4: Module Manifest Validation" -ForegroundColor Yellow
-$manifestFiles = Get-ChildItem -Path "./core-runner/modules" -Filter "*.psd1" -Recurse
+$manifestFiles = Get-ChildItem -Path "./aither-core/modules" -Filter "*.psd1" -Recurse
 foreach ($manifest in $manifestFiles) {
     try {
         $manifestData = Test-ModuleManifest $manifest.FullName
@@ -75,7 +75,7 @@ foreach ($manifest in $manifestFiles) {
 Write-Host "`n🔍 Test 5: Rebranding Verification" -ForegroundColor Yellow
 $rebrandingChecks = @{
     "README.md contains Aitherium" = (Get-Content "./README.md" -Raw) -match "Aitherium"
-    "Core runner has Aitherium banner" = (Get-Content "./core-runner/core_app/core-runner.ps1" -Raw) -match "Aitherium"
+    "Core runner has Aitherium banner" = (Get-Content "./aither-core/aither-core.ps1" -Raw) -match "Aitherium"
     "LICENSE updated to Aitherium" = (Get-Content "./LICENSE" -Raw) -match "Aitherium Contributors"
 }
 

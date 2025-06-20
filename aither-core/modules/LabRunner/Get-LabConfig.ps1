@@ -36,7 +36,7 @@ function Get-LabConfig {
         }
 
         $dirs'RepoRoot'       = $repoRoot.Path
-        $dirs'RunnerScripts'  = Join-Path $repoRoot 'core-runner/core_app/scripts'
+        $dirs'RunnerScripts'  = Join-Path $repoRoot 'aither-core/scripts'
         $dirs'UtilityScripts' = Join-Path (Join-Path $repoRoot 'lab_utils') 'LabRunner'
         $dirs'ConfigFiles'    = Join-Path $repoRoot 'config_files'
         $dirs'InfraRepo'      = if ($config.InfraRepoPath) { $config.InfraRepoPath } else { 'C:\\Temp\\base-infra' }

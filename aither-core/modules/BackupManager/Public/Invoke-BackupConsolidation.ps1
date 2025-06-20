@@ -45,7 +45,10 @@ function Invoke-BackupConsolidation {
         [string]$CompressionLevel = "Optimal",
         
         [Parameter(ParameterSetName = 'Individual')]
-        [switch]$Force
+        [switch]$Force,
+        
+        [Parameter(ParameterSetName = 'Individual')]
+        [int]$MinFreeSpaceGB = 1
     )
     
     begin {
