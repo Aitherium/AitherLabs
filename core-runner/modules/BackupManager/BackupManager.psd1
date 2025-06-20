@@ -3,10 +3,10 @@
     RootModule = 'BackupManager.psm1'
     ModuleVersion = '1.0.0'
     GUID = 'f8d7c6b5-4e3d-2c1b-0a9e-8f7e6d5c4b3a'
-    Author = 'OpenTofu Lab Automation Team'
-    CompanyName = 'OpenTofu Lab Automation'
-    Copyright = '(c) 2025 OpenTofu Lab Automation Team. All rights reserved.'
-    Description = 'Comprehensive backup management module for OpenTofu Lab Automation project'
+    Author = 'Aitherium Contributors'
+    CompanyName = 'Aitherium'
+    Copyright = '(c) 2025 Aitherium. All rights reserved.'
+    Description = 'Comprehensive backup management module for Aitherium Infrastructure Automation project'
     
     # Minimum version of the PowerShell engine required
     PowerShellVersion = '5.1'

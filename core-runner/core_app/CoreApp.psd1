@@ -9,15 +9,15 @@
     GUID              = 'a1b2c3d4-e5f6-7890-1234-567890abcdef'
     
     # Author of this module
-    Author            = 'wizzense'
+    Author            = 'Aitherium Contributors'
     
     # Company or vendor of this module
-    CompanyName       = 'wizzense'
+    CompanyName       = 'Aitherium'
     
     # Copyright statement for this module
-    Copyright         = '(c) 2025 Wizzense. All rights reserved.'
+    Copyright         = '(c) 2025 Aitherium. All rights reserved.'
       # Description of the functionality provided by this module
-    Description       = 'Parent orchestration module for OpenTofu Lab Automation - manages all modules and provides unified interface'
+    Description       = 'Parent orchestration module for Aitherium Infrastructure Automation - manages all modules and provides unified interface'
     
     # Minimum version of the PowerShell engine required by this module
     PowerShellVersion = '7.0'
@@ -58,10 +58,10 @@
             Tags         = @('OpenTofu', 'Terraform', 'Lab', 'Automation', 'Infrastructure')
             
             # A URL to the license for this module.
-            LicenseUri   = 'https://github.com/wizzense/opentofu-lab-automation/LICENSE'
+            LicenseUri   = 'https://github.com/aitherium/aitherlabs/LICENSE'
             
             # A URL to the main website for this project.
-            ProjectUri   = 'https://github.com/wizzense/opentofu-lab-automation'
+            ProjectUri   = 'https://github.com/aitherium/aitherlabs'
             
             # A URL to an icon representing this module.
             IconUri      = ''

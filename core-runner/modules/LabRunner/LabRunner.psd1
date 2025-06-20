@@ -2,8 +2,8 @@
     RootModule = 'LabRunner.psm1'
     ModuleVersion = '0.1.0'
     GUID = 'c0000000-0000-4000-8000-000000000001'
-    Author = 'OpenTofu'
-    Description = 'LabRunner module for OpenTofu Lab Automation'
+    Author = 'Aitherium Contributors'
+    Description = 'LabRunner module for Aitherium Infrastructure Automation'
     
     FunctionsToExport = @(
         'Invoke-LabStep',

@@ -2,9 +2,9 @@
     RootModule = 'TestingFramework.psm1'
     ModuleVersion = '2.0.0'
     GUID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
-    Author = 'OpenTofu Lab Automation Team'
-    CompanyName = 'OpenTofu Lab Automation'
-    Copyright = '(c) 2025 OpenTofu Lab Automation. All rights reserved.'
+    Author = 'Aitherium Contributors'
+    CompanyName = 'Aitherium'
+    Copyright = '(c) 2025 Aitherium. All rights reserved.'
     Description = 'Enhanced unified testing framework serving as central orchestrator for all testing activities with module integration, parallel execution, and comprehensive reporting'
 
     PowerShellVersion = '7.0'

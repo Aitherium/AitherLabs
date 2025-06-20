@@ -265,7 +265,7 @@ function Fix-MalformedImportStatements {
             # Fix 4: Remove hardcoded user paths
             $hardcodedPathPattern = 'C:\\Users\\alexa\\OneDrive\\Documents\\0\. wizzense\\opentofu-lab-automation'
             if ($content -match [regex]::Escape($hardcodedPathPattern)) {
-                $content = $content -replace [regex]::Escape($hardcodedPathPattern), '/workspaces/opentofu-lab-automation'
+                $content = $content -replace [regex]::Escape($hardcodedPathPattern), '/workspaces/AitherLabs'
                 $fileModified = $true
                 $script:IssuesFound.HardcodedPaths += $file.FullName
                 Write-CustomLog "Fixed hardcoded path in: $($file.Name)" -Level INFO

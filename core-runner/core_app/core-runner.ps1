@@ -2,11 +2,11 @@
 
 <#
 .SYNOPSIS
-    Core application runner for OpenTofu Lab Automation
+    Core application runner for Aitherium Infrastructure Automation
 
 .DESCRIPTION
-    Main runner script that orchestrates lab setup, configuration, and script execution
-    for the OpenTofu Lab Automation project.
+    Main runner script that orchestrates infrastructure setup, configuration, and script execution
+    for the Aitherium platform.
 
 .PARAMETER Quiet
     Run in quiet mode with minimal output
@@ -266,7 +266,7 @@ try {
 
 # Main execution logic
 try {
-    Write-CustomLog 'Starting OpenTofu Lab Automation Core Runner' -Level DEBUG
+    Write-CustomLog 'Starting Aitherium Infrastructure Automation Core Runner' -Level DEBUG
     Write-CustomLog "Repository root: $repoRoot" -Level DEBUG
     Write-CustomLog "Configuration file: $ConfigFile" -Level DEBUG
     Write-CustomLog "Verbosity level: $Verbosity" -Level DEBUG
@@ -322,7 +322,13 @@ try {
                 # Interactive mode - show menu in a loop
                 do {
                     Write-Host "`n" + "=" * 60 -ForegroundColor Cyan
-                    Write-Host "OpenTofu Lab Automation - Script Menu" -ForegroundColor Cyan
+                    Write-Host "     _    _ _   _               _                 " -ForegroundColor Cyan
+                    Write-Host "    / \  (_) |_| |__   ___ _ __(_)_   _ _ __ ___  " -ForegroundColor Cyan
+                    Write-Host "   / _ \ | | __| '_ \ / _ \ '__| | | | | '_ \` _ \ " -ForegroundColor Cyan
+                    Write-Host "  / ___ \| | |_| | | |  __/ |  | | |_| | | | | | |" -ForegroundColor Cyan
+                    Write-Host " /_/   \_\_|\__|_| |_|\___|_|  |_|\__,_|_| |_| |_|" -ForegroundColor Cyan
+                    Write-Host "                                                   " -ForegroundColor Cyan
+                    Write-Host " Infrastructure Automation That Transcends Boundaries" -ForegroundColor Cyan
                     Write-Host "=" * 60 -ForegroundColor Cyan
                     Write-Host "`nAvailable Scripts:" -ForegroundColor Cyan
                     for ($i = 0; $i -lt $availableScripts.Count; $i++) {

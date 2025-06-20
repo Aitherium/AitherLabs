@@ -2,7 +2,7 @@
 
 ## Overview
 
-**CoreApp is now the parent orchestration module** for the entire OpenTofu Lab Automation ecosystem. It provides unified management and coordination of all other modules while maintaining backward compatibility with existing functionality.
+**CoreApp is now the parent orchestration module** for the entire Aitherium Infrastructure Automation ecosystem. It provides unified management and coordination of all other modules while maintaining backward compatibility with existing functionality.
 
 ### Architecture Changes
 

@@ -11,17 +11,16 @@
     # ID used to uniquely identify this module
     GUID = 'f47b3c1e-8d2a-4a6b-9c3f-1e2d3c4b5a67'
     
-    # Author of this module
-    Author = 'OpenTofu Lab Automation Team'
-    
+    # Author of this module    Author = 'Aitherium Contributors'
+
     # Company or vendor of this module
-    CompanyName = 'OpenTofu Lab Automation'
-    
+    CompanyName = 'Aitherium'
+
     # Copyright statement for this module
-    Copyright = '(c) 2025 OpenTofu Lab Automation. All rights reserved.'
-    
+    Copyright = '(c) 2025 Aitherium. All rights reserved.'
+
     # Description of the functionality provided by this module
-    Description = 'Unified maintenance module for OpenTofu Lab Automation project with integrated testing, health monitoring, and PatchManager integration'
+    Description = 'Unified maintenance module for Aitherium Infrastructure Automation project with integrated testing, health monitoring, and PatchManager integration'
     
     # Minimum version of the PowerShell engine required by this module
     PowerShellVersion = '7.0'

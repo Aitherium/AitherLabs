@@ -10,16 +10,16 @@
     GUID = 'B5D8F9A1-C2E3-4F6A-8B9C-1D2E3F4A5B6C'
     
     # Author of this module
-    Author = 'OpenTofu Lab Automation Team'
+    Author = 'Aitherium Contributors'
     
     # Company or vendor of this module
-    CompanyName = 'Wizzense'
+    CompanyName = 'Aitherium'
     
     # Copyright statement for this module
-    Copyright = '(c) 2025 Wizzense. All rights reserved.'
+    Copyright = '(c) 2025 Aitherium. All rights reserved.'
     
     # Description of the functionality provided by this module
-    Description = 'Enterprise-grade centralized logging system for OpenTofu Lab Automation with full tracing, performance monitoring, and debugging capabilities.'
+    Description = 'Enterprise-grade centralized logging system for Aitherium Infrastructure Automation with full tracing, performance monitoring, and debugging capabilities.'
     
     # Minimum version of the PowerShell engine required by this module
     PowerShellVersion = '7.0'
