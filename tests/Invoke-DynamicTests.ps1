@@ -1,6 +1,4 @@
 #!/usr/bin/env pwsh
-# Load shared test helpers for environment setup
-. (Join-Path $PSScriptRoot 'helpers' 'TestHelpers.ps1')
 #Requires -Version 7.0
 
 <#
@@ -30,6 +28,9 @@ param(
     
     [string]$ScriptPattern = '*'
 )
+
+# Load shared test helpers for environment setup
+. (Join-Path $PSScriptRoot 'helpers' 'TestHelpers.ps1')
 
 # Set up environment
 $ErrorActionPreference = 'Stop'
