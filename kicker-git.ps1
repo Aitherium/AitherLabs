@@ -97,7 +97,7 @@ param(
 $script:BootstrapVersion = '2.1.0'
 $script:RepoUrl = 'https://github.com/Aitherium/AitherLabs.git'
 $script:RawBaseUrl = 'https://raw.githubusercontent.com/Aitherium/AitherLabs'
-$script:DefaultConfigUrl = "$script:RawBaseUrl/$TargetBranch/aither-core/default-config.json"
+$script:DefaultConfigUrl = "$script:RawBaseUrl/$TargetBranch/core-runner/core_app/default-config.json"
 
 # PowerShell version compatibility detection
 $script:IsPowerShell7Plus = $PSVersionTable.PSVersion.Major -ge 7
@@ -603,7 +603,7 @@ function Get-BootstrapConfig {
         Write-BootstrapLog "Using specified config: $configPath" 'INFO'
     } else {
         # Look for config in repo
-        $defaultConfigPath = Join-Path $RepoPath "aither-core/default-config.json"
+        $defaultConfigPath = Join-Path $RepoPath "core-runner/core_app/default-config.json"
 
         if (Test-Path $defaultConfigPath) {
             $configPath = $defaultConfigPath
@@ -661,7 +661,7 @@ function Invoke-CoreAppBootstrap {
 
     Write-BootstrapLog "=== CoreApp Orchestration Bootstrap ===" 'INFO'
 
-    $runnerScript = Join-Path $RepoPath "aither-core/aither-core.ps1"
+    $runnerScript = Join-Path $RepoPath "core-runner/core_app/core-runner.ps1"
 
     if (-not (Test-Path $runnerScript)) {
         throw "CoreApp runner script not found at: $runnerScript"
@@ -755,7 +755,7 @@ function Show-CoreAppDemo {
         try {
             Push-Location $RepoPath
             # Import CoreApp module
-            $coreAppPath = Join-Path $RepoPath "aither-core"
+            $coreAppPath = Join-Path $RepoPath "core-runner/core_app"
             Import-Module $coreAppPath -Force
             Write-BootstrapLog "OK CoreApp module imported" 'SUCCESS'
             # Initialize and show module status
@@ -789,7 +789,7 @@ function Test-BootstrapHealth {
     Write-BootstrapLog "=== Health Check ===" 'INFO'
 
     $healthItems = @(
-        @{ Path = Join-Path $RepoPath "aither-core/AitherCore.psm1"; Name = "AitherCore Module" }
+        @{ Path = Join-Path $RepoPath "core-runner/core_app/CoreApp.psm1"; Name = "CoreApp Module" }
         @{ Path = Join-Path $RepoPath "core-runner/modules"; Name = "Core Modules Directory" }
         @{ Path = Join-Path $RepoPath "tests"; Name = "Test Framework" }
         @{ Path = Join-Path $RepoPath "opentofu"; Name = "OpenTofu Configuration" }
@@ -936,7 +936,7 @@ Write-Host "Project Directory: `$(Get-Location)" -ForegroundColor Green
 
 try {
     # Import CoreApp module
-    Import-Module "./aither-core/AitherCore.psm1" -Force:`$Force
+    Import-Module "./core-runner/core_app/CoreApp.psm1" -Force:`$Force
 
     # Initialize CoreApp ecosystem
     Initialize-CoreApplication -Force:`$Force

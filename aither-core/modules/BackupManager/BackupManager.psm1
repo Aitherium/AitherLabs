@@ -13,10 +13,10 @@ if (Get-Module -Name 'Logging' -ErrorAction SilentlyContinue) {
 } else {
     $loggingPaths = @(
         'Logging',  # Try module name first (if in PSModulePath)
-        (Join-Path (Split-Path $PSScriptRoot -Parent) "Logging")  # Relative to modules directory
-        if ($env:PWSH_MODULES_PATH) { Join-Path $env:PWSH_MODULES_PATH "Logging" }  # Environment path
-        if ($env:PROJECT_ROOT) { Join-Path $env:PROJECT_ROOT "aither-core/modules/Logging" }  # Full project path
-    ) | Where-Object { $_ }  # Filter out null values
+        (Join-Path (Split-Path $PSScriptRoot -Parent) "Logging"),  # Relative to modules directory
+        (Join-Path $env:PWSH_MODULES_PATH "Logging"),  # Environment path
+        (Join-Path $env:PROJECT_ROOT "core-runner/modules/Logging")  # Full project path
+    )
 
     foreach ($loggingPath in $loggingPaths) {
         if ($loggingImported) { break }

@@ -8,22 +8,12 @@ if (Get-Module -Name 'Logging' -ErrorAction SilentlyContinue) {
     $loggingImported = $true
     Write-Verbose "Logging module already available"
 } else {
-    $loggingPaths = @()
-    
-    # Add paths that don't require environment variables
-    $loggingPaths += 'Logging'  # Try module name first (if in PSModulePath)
-    $loggingPaths += (Join-Path (Split-Path $PSScriptRoot -Parent) "Logging")  # Relative to modules directory
-    
-    # Add paths that require environment variables (with null checks)
-    if ($env:PWSH_MODULES_PATH) { 
-        $loggingPaths += (Join-Path $env:PWSH_MODULES_PATH "Logging")
-    }
-    if ($env:PROJECT_ROOT) { 
-        $loggingPaths += (Join-Path $env:PROJECT_ROOT "aither-core/modules/Logging")
-    }
-    
-    # Add fallback path
-    $loggingPaths += '/workspaces/AitherLabs/aither-core/modules/Logging'
+    $loggingPaths = @(
+        'Logging',  # Try module name first (if in PSModulePath)
+        (Join-Path (Split-Path $PSScriptRoot -Parent) "Logging"),  # Relative to modules directory
+        (Join-Path $env:PWSH_MODULES_PATH "Logging"),  # Environment path
+        (Join-Path $env:PROJECT_ROOT "core-runner/modules/Logging")  # Full project path
+    )
 
     foreach ($loggingPath in $loggingPaths) {
         if ($loggingImported) { break }

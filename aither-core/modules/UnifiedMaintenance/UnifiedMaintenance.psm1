@@ -142,7 +142,7 @@ function Invoke-AutomatedTestWorkflow {
             $config.TestResult.OutputFormat = 'NUnitXml'
             if ($GenerateCoverage) {
                 $config.CodeCoverage.Enabled    = $true
-                $config.CodeCoverage.Path       = @("$ProjectRoot/aither-core/modules","$ProjectRoot/aither-core")
+                $config.CodeCoverage.Path       = @("$ProjectRoot/core-runner/modules","$ProjectRoot/core-runner/core_app")
                 $config.CodeCoverage.OutputPath = "$OutputPath/PesterCoverage.xml"
             }
             $pesterResults = Invoke-Pester -Configuration $config
@@ -221,7 +221,7 @@ function Invoke-AutomatedTestWorkflow {
             $perf.ModuleImportTime = $imp.TotalSeconds
 
             $run = Measure-Command {
-                & "$ProjectRoot/aither-core/aither-core.ps1" -Scripts 'help' -ErrorAction SilentlyContinue
+                & "$ProjectRoot/core-runner/core_app/core-runner.ps1" -Scripts 'help' -ErrorAction SilentlyContinue
             }
             $perf.RunnerPerformanceTime = $run.TotalSeconds
 

@@ -9,245 +9,121 @@ It ensures scripts are integrated into the project framework without breaking de
 #>
 
 function Register-OneOffScript {
-    [CmdletBinding()]
     param(
-        [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
         [string]$ScriptPath,
-        
-        [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [string]$Name,
-        
-        [Parameter()]
-        [string]$Description = "",
-        
-        [Parameter()]
-        [string]$Purpose = "",
-        
-        [Parameter()]
-        [string]$Author = $env:USERNAME,
-        
-        [Parameter()]
-        [hashtable]$Parameters = @{},
-        
-        [Parameter()]
+        [string]$Purpose,
+        [string]$Author,
         [switch]$Force
     )
 
-    begin {
-        $ErrorActionPreference = "Stop"
-        
-        # Validate script path exists
-        if (-not (Test-Path $ScriptPath)) {
-            throw "Script file not found: $ScriptPath"
-        }
-        
-        # Validate Name parameter
-        if ([string]::IsNullOrWhiteSpace($Name)) {
-            throw "Name parameter cannot be null or empty"
-        }
+    $MetadataFile = (Join-Path (Get-Location) "scripts/one-off-scripts.json")
+
+    $scriptMetadata = @{
+        ScriptPath = $ScriptPath
+        Purpose = $Purpose
+        Author = $Author
+        RegisteredDate = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+        Executed = $false
+        ExecutionDate = $null
+        ExecutionResult = $null
     }
-    
-    process {
-        try {
-            $MetadataFile = (Join-Path (Get-Location) "scripts/one-off-scripts.json")
-            $MetadataDir = Split-Path $MetadataFile -Parent
-            
-            # Ensure metadata directory exists
-            if (-not (Test-Path $MetadataDir)) {
-                New-Item -ItemType Directory -Path $MetadataDir -Force | Out-Null
-            }
 
-            $scriptMetadata = @{
-                ScriptPath = $ScriptPath
-                Name = $Name
-                Description = $Description
-                Purpose = $Purpose
-                Author = $Author
-                Parameters = $Parameters
-                RegisteredDate = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-                Executed = $false
-                ExecutionDate = $null
-                ExecutionResult = $null
-            }
-
-            if (-not (Test-Path $MetadataFile)) {
-                $allScripts = @()
-            } else {
-                $allScripts = Get-Content $MetadataFile | ConvertFrom-Json
-            }
-
-            $existingScript = $allScripts | Where-Object { $_.ScriptPath -eq $ScriptPath }
-
-            if ($existingScript -and -not $Force) {
-                Write-Warning "Script already registered: $ScriptPath"
-                return $false
-            }
-
-            if ($existingScript -and $Force) {
-                $allScripts = $allScripts | Where-Object { $_.ScriptPath -ne $ScriptPath }
-                Write-Verbose "Re-registering script: $ScriptPath"
-            }
-
-            $allScripts += $scriptMetadata
-            $allScripts | ConvertTo-Json -Depth 10 | Set-Content $MetadataFile
-
-            Write-Verbose "Script registered successfully: $ScriptPath"
-            return $true
-        }
-        catch {
-            Write-Error "Failed to register script: $($_.Exception.Message)"
-            throw
-        }
+    if (-not (Test-Path $MetadataFile)) {
+        $allScripts = @()
+    } else {
+        $allScripts = Get-Content $MetadataFile  ConvertFrom-Json
     }
+
+    $existingScript = $allScripts | Where-Object { $_.ScriptPath -eq $ScriptPath }
+
+    if ($existingScript -and -not $Force) {
+        Write-Host "Script already registered: $ScriptPath" -ForegroundColor Yellow
+        return
+    }
+
+    if ($existingScript -and $Force) {
+        $allScripts = $allScripts | Where-Object { $_.ScriptPath -ne $ScriptPath }
+        Write-Host "Re-registering script: $ScriptPath" -ForegroundColor Cyan
+    }
+
+    $allScripts += $scriptMetadata
+    $allScripts | ConvertTo-Json -Depth 10 | Set-Content $MetadataFile
+
+    Write-Host "Script registered successfully: $ScriptPath" -ForegroundColor Green
 }
 
 function Test-OneOffScript {
-    [CmdletBinding()]
     param(
-        [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
-        [string]$ScriptPath,
-        
-        [Parameter()]
-        [string]$Name
+        [string]$ScriptPath
     )
 
-    begin {
-        $ErrorActionPreference = "Stop"
+    $MetadataFile = (Join-Path $PSScriptRoot "one-off-scripts.json") # Corrected path and ensure usage
+
+    if (-not (Test-Path $MetadataFile)) {
+        Write-Warning "Metadata file not found: $MetadataFile"
+        return $false
     }
-    
-    process {
-        try {
-            $MetadataFile = (Join-Path (Get-Location) "scripts/one-off-scripts.json")
 
-            if (-not (Test-Path $MetadataFile)) {
-                Write-Warning "Metadata file not found: $MetadataFile"
-                return $false
-            }
+    $allScripts = Get-Content $MetadataFile | ConvertFrom-Json
+    $scriptMetadata = $allScripts | Where-Object { $_.Path -eq $ScriptPath }
 
-            $allScripts = Get-Content $MetadataFile | ConvertFrom-Json
-            
-            # Search by ScriptPath or Name
-            if ($Name) {
-                $scriptMetadata = $allScripts | Where-Object { $_.Name -eq $Name }
-            } else {
-                $scriptMetadata = $allScripts | Where-Object { $_.ScriptPath -eq $ScriptPath }
-            }
-
-            if (-not $scriptMetadata) {
-                Write-Warning "Script '$ScriptPath' not found in metadata."
-                return $false
-            }
-
-            if (-not (Test-Path $ScriptPath)) {
-                Write-Warning "Script file not found: $ScriptPath"
-                return $false
-            }
-
-            # Basic syntax validation
-            try {
-                $null = [System.Management.Automation.PSParser]::Tokenize((Get-Content $ScriptPath -Raw), [ref]$null)
-                Write-Verbose "Script syntax validation passed: $ScriptPath"
-                return $true
-            }
-            catch {
-                Write-Warning "Script syntax validation failed: $ScriptPath - $($_.Exception.Message)"
-                return $false
-            }
-        }
-        catch {
-            Write-Error "Failed to test script: $($_.Exception.Message)"
-            return $false
-        }
+    if (-not $scriptMetadata) {
+        Write-Warning "Script '$ScriptPath' not found in metadata."
+        return $false
     }
+
+    if (-not (Test-Path $ScriptPath)) {
+        Write-Warning "Script file not found: $ScriptPath"
+        return $false
+    }
+
+    $content = Get-Content $ScriptPath -Raw
+    if ($content -notmatch "Import-Module") {
+        Write-Host "Script does not import required modules: $ScriptPath" -ForegroundColor Yellow
+        return $false
+    }
+
+    if ($content -match "Invoke-ParallelScriptAnalyzer") {
+        Write-Host "Script uses modern function: Invoke-ParallelScriptAnalyzer" -ForegroundColor Green
+        return $true
+    }
+
+    Write-Host "Script uses deprecated function: Invoke-BatchScriptAnalysis" -ForegroundColor Red
+    return $false
 }
 
 function Invoke-OneOffScript {
-    [CmdletBinding()]
     param(
-        [Parameter(Mandatory = $true)]
-        [ValidateNotNullOrEmpty()]
         [string]$ScriptPath,
-        
-        [Parameter()]
-        [string]$Name,
-        
-        [Parameter()]
-        [hashtable]$Parameters = @{},
-        
-        [Parameter()]
         [switch]$Force
     )
 
-    begin {
-        $ErrorActionPreference = "Stop"
+    $MetadataFile = (Join-Path $PSScriptRoot "one-off-scripts.json") # Corrected path
+
+    $allScripts = Get-Content $MetadataFile | ConvertFrom-Json
+    $script = $allScripts | Where-Object { $_.Path -eq $ScriptPath } # Corrected property name
+
+    if (-not $script) {
+        Write-Error "Script '$ScriptPath' not found in metadata."
+        return
     }
-    
-    process {
-        try {
-            $MetadataFile = (Join-Path (Get-Location) "scripts/one-off-scripts.json")
 
-            if (-not (Test-Path $MetadataFile)) {
-                Write-Warning "Metadata file not found: $MetadataFile. Register the script first."
-                return $false
-            }
+    if ($script.Executed -and -not $Force) {
+        Write-Error "Script '$ScriptPath' already executed. Use -Force to re-run."
+        return
+    }
 
-            $allScripts = Get-Content $MetadataFile | ConvertFrom-Json
-            
-            # Find script by ScriptPath or Name
-            if ($Name) {
-                $script = $allScripts | Where-Object { $_.Name -eq $Name }
-            } else {
-                $script = $allScripts | Where-Object { $_.ScriptPath -eq $ScriptPath }
-            }
-
-            if (-not $script) {
-                Write-Error "Script '$ScriptPath' not found in metadata."
-                return $false
-            }
-
-            if ($script.Executed -and -not $Force) {
-                Write-Warning "Script '$($script.Name)' already executed. Use -Force to re-run."
-                return $false
-            }
-
-            if (-not (Test-Path $ScriptPath)) {
-                Write-Error "Script file not found: $ScriptPath"
-                return $false
-            }
-
-            Write-Verbose "Executing script: $ScriptPath"
-            
-            # Execute script with parameters if provided
-            if ($Parameters.Count -gt 0) {
-                $result = & $ScriptPath @Parameters
-            } else {
-                $result = & $ScriptPath
-            }
-            
-            # Update metadata
-            $script.Executed = $true
-            $script.ExecutionDate = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-            $script.ExecutionResult = "Success"
-            
-            # Save updated metadata
-            $allScripts | ConvertTo-Json -Depth 10 | Set-Content $MetadataFile
-            
-            Write-Verbose "Script executed successfully: $ScriptPath"
-            return $true
-        }
-        catch {
-            # Update metadata with failure info
-            if ($script) {
-                $script.ExecutionResult = "Failed: $($_.Exception.Message)"
-                $script.ExecutionDate = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-                $allScripts | ConvertTo-Json -Depth 10 | Set-Content $MetadataFile -ErrorAction SilentlyContinue
-            }
-            
-            Write-Error "Script execution failed: $($_.Exception.Message)"
-            return $false
-        }
+    try {
+        Write-Host "Executing script: $ScriptPath" -ForegroundColor Cyan
+        & $ScriptPath
+        $script.Executed = $true
+        $script.ExecutionDate = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+        $script.ExecutionResult = "Success"
+        Write-Host "Script executed successfully: $ScriptPath" -ForegroundColor Green
+    } catch {
+        $script.ExecutionResult = "Failed: $($_.Exception.Message)"
+        Write-Host "Script execution failed: $($_.Exception.Message)" -ForegroundColor Red
+    } finally {
+        $allScripts | ConvertTo-Json -Depth 10 | Set-Content $MetadataFile
     }
 }

@@ -30,10 +30,10 @@
     Run in non-interactive mode, suppress prompts and user input
 
 .EXAMPLE
-    .\aither-core.ps1
+    .\core-runner.ps1
 
 .EXAMPLE
-    .\aither-core.ps1 -ConfigFile "custom-config.json" -Verbosity detailed
+    .\core-runner.ps1 -ConfigFile "custom-config.json" -Verbosity detailed
 #>
 
 [CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'Default')]
@@ -157,10 +157,10 @@ if (-not $NonInteractive) {
 
 Write-Verbose "Final NonInteractive value: $NonInteractive"
 
-# Determine repository root - script is in aither-core/, so go up one level to repo root
-$repoRoot = Split-Path $PSScriptRoot -Parent
+# Determine repository root - go up one level from core_app to core-runner, then up one more to repo root
+$repoRoot = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $env:PROJECT_ROOT = $repoRoot
-$env:PWSH_MODULES_PATH = "$PSScriptRoot/modules"
+$env:PWSH_MODULES_PATH = "$repoRoot/core-runner/modules"
 
 Write-Verbose "Repository root: $repoRoot"
 Write-Verbose "Modules path: $env:PWSH_MODULES_PATH"
@@ -271,13 +271,8 @@ try {
     Write-CustomLog "Configuration file: $ConfigFile" -Level DEBUG
     Write-CustomLog "Verbosity level: $Verbosity" -Level DEBUG
 
-    # Get available scripts - use path from configuration or default to scripts subdirectory
-    $scriptsRelativePath = $config.scripts.path ?? './scripts'
-    $scriptsPath = if ([System.IO.Path]::IsPathRooted($scriptsRelativePath)) {
-        $scriptsRelativePath
-    } else {
-        Join-Path $PSScriptRoot $scriptsRelativePath
-    }
+    # Get available scripts
+    $scriptsPath = Join-Path $PSScriptRoot 'scripts'
     if (Test-Path $scriptsPath) {
         $availableScripts = Get-ChildItem -Path $scriptsPath -Filter '*.ps1' | Sort-Object Name
         Write-CustomLog "Found $($availableScripts.Count) scripts" -Level DEBUG
