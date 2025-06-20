@@ -244,10 +244,10 @@ function Get-TestAnalysisContext {
             if ($analysisResult.ErrorCategories.Count -gt 0) { $confidenceScore += 25 }
             if ($analysisResult.AffectedCapabilities.Count -gt 0) { $confidenceScore += 20 }
 
-            $analysisResult.Confidence = switch ($confidenceScore) {
-                { $_ -ge 80 } { "High" }
-                { $_ -ge 60 } { "Medium" }
-                { $_ -ge 40 } { "Low" }
+            $analysisResult.Confidence = switch ($true) {
+                ($confidenceScore -ge 80) { "High" }
+                ($confidenceScore -ge 60) { "Medium" }
+                ($confidenceScore -ge 40) { "Low" }
                 default { "Unknown" }
             }
 

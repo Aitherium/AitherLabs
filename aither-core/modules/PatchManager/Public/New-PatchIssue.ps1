@@ -268,17 +268,31 @@ $(if ($analysisResult.TechnicalDetails.RawErrorSample) {
                 }
             }
 
-            # Prepare labels
+            # Prepare labels and ensure they exist
             $allLabels = @("patch") + $Labels
             if ($Priority -eq "High" -or $Priority -eq "Critical") {
                 $allLabels += "priority"
+            }
+
+            # Ensure required labels exist, create them if needed
+            foreach ($label in $allLabels) {
+                $labelCheck = gh label list --search $label 2>&1 | Out-String
+                if (-not $labelCheck.Contains($label)) {
+                    Write-IssueLog "Creating missing label: $label" -Level "INFO"
+                    $labelColor = switch ($label) {
+                        "patch" { "0366d6" }
+                        "priority" { "d93f0b" }
+                        default { "7057ff" }
+                    }
+                    gh label create $label --color $labelColor --description "Auto-created by PatchManager" 2>&1 | Out-Null
+                }
             }
 
             # Create the issue with robust error handling
             Write-IssueLog "Creating GitHub issue: $issueTitle" -Level "INFO"
             $result = gh issue create --title $issueTitle --body $issueBody --label ($allLabels -join ',') 2>&1
 
-            # Handle label errors gracefully
+            # Handle any remaining label errors gracefully
             if ($LASTEXITCODE -ne 0 -and $result -match "not found") {
                 Write-IssueLog "Label issue detected, creating without labels" -Level "WARN"
                 $result = gh issue create --title $issueTitle --body $issueBody 2>&1
